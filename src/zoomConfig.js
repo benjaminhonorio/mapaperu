@@ -1,0 +1,5 @@
+export const MIN_DEPARTMENT_ZOOM = 5;
+export const MAX_DEPARTMENT_ZOOM = 8;
+export const MIN_PROVINCE_ZOOM = MAX_DEPARTMENT_ZOOM;
+export const MAX_PROVINCE_ZOOM = 10;
+export const MIN_DISTRICT_ZOOM = MAX_PROVINCE_ZOOM;
