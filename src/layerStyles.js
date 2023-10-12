@@ -21,9 +21,19 @@ export const districtOutline = {
   source: 'districtData',
   paint: {
     'line-width': 2,
-    'line-color': '#000',
+    'line-color': '#ccc',
   },
   minzoom: MIN_DISTRICT_ZOOM,
+};
+
+export const districtHighlight = {
+  id: 'highlighted-district',
+  type: 'line',
+  source: 'districtData',
+  paint: {
+    'line-color': '#666',
+    'line-width': 2,
+  },
 };
 
 export const provinceFill = {
@@ -41,9 +51,19 @@ export const provinceOutline = {
   source: 'provinceData',
   paint: {
     'line-width': 2,
-    'line-color': '#000',
+    'line-color': '#ccc',
   },
   minzoom: MIN_PROVINCE_ZOOM,
+};
+
+export const provinceHighlight = {
+  id: 'highlighted-province',
+  type: 'line',
+  source: 'provinceData',
+  paint: {
+    'line-color': '#666',
+    'line-width': 2,
+  },
 };
 
 export const departmentFill = {
@@ -62,9 +82,19 @@ export const departmentOutline = {
   source: 'departmentData',
   paint: {
     'line-width': 2,
-    'line-color': '#000',
+    'line-color': '#ccc',
   },
   minzoom: MIN_DEPARTMENT_ZOOM,
+};
+
+export const departmentHighlight = {
+  id: 'highlighted-department',
+  type: 'line',
+  source: 'departmentData',
+  paint: {
+    'line-color': '#666',
+    'line-width': 2,
+  },
 };
 
 export const provinceCentroidLabel = {

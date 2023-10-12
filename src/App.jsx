@@ -20,19 +20,23 @@ import provincias from './assets/provincias.json';
 import {
   departmentCentroidLabel,
   departmentFill,
+  departmentHighlight,
   departmentOutline,
   districtCentroidLabel,
   districtFill,
+  districtHighlight,
   districtOutline,
   fixedDepartmentLabelStyle,
   fixedDistrictLabelStyle,
   fixedProvinceLabelStyle,
   provinceCentroidLabel,
   provinceFill,
+  provinceHighlight,
   provinceOutline,
 } from './layerStyles.js';
 
 import {
+  INITIAL_ZOOM,
   MAX_DEPARTMENT_ZOOM,
   MAX_PROVINCE_ZOOM,
   MIN_DEPARTMENT_ZOOM,
@@ -52,13 +56,13 @@ const PROVINCE = 'province';
 const DEPARTMENT = 'department';
 const KEY = 'name';
 const OUTLINE = (name) => `${name}_outline`;
-const FILTER = ['!in', KEY];
-const boxStyle = { width: '100vw', height: '100vh' };
+const NOT_IN_FILTER = ['!in', KEY];
+const EQUALS_NAME_FILTER = ['==', KEY, ''];
 
 const defaultView = {
   latitude: -9.061119,
   longitude: -78.57901,
-  zoom: 5,
+  zoom: INITIAL_ZOOM,
 };
 
 const interactiveLayerIds = [
@@ -72,26 +76,55 @@ const interactiveLayerIds = [
 
 function App() {
   const mapRef = useRef(null);
+  const layerRef = useRef(DEPARTMENT);
   const [viewState, setViewState] = useState(defaultView);
   const [depCentroid, setDepCentroid] = useState(EMPTY_FEATURE);
-  const [depLabelFilter, setDepLabelFilter] = useState(FILTER);
+  const [depLabelFilter, setDepLabelFilter] = useState(NOT_IN_FILTER);
+  const [depHighlightedFilter, setDepHighlightedFilter] =
+    useState(EQUALS_NAME_FILTER);
   const [provCentroid, setProvCentroid] = useState(EMPTY_FEATURE);
-  const [provLabelFilter, setProvLabelFilter] = useState(FILTER);
+  const [provLabelFilter, setProvLabelFilter] = useState(NOT_IN_FILTER);
+  const [provHighlightedFilter, setProvHighlightedFilter] =
+    useState(EQUALS_NAME_FILTER);
   const [distCentroid, setDistCentroid] = useState(EMPTY_FEATURE);
-  const [distLabelFilter, setDistLabelFilter] = useState(FILTER);
+  const [distLabelFilter, setDistLabelFilter] = useState(NOT_IN_FILTER);
+  const [distHighlightedFilter, setDistHighlightedFilter] =
+    useState(EQUALS_NAME_FILTER);
 
-  const onClick = (event) => {
-    const feature = event.features?.shift();
+  const onClick = (e) => {
+    const map = e.target;
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: [layerRef.current],
+    });
+    const feature = features[0];
     if (feature) {
-      const [minLng, minLat, maxLng, maxLat] = turf.bbox(feature);
-      mapRef.current?.fitBounds(
-        [
-          [minLng, minLat],
-          [maxLng, maxLat],
-        ],
-        { padding: 40, duration: 1000 }
-      );
+      map.fitBounds(turf.bbox(feature.geometry));
+      switch (feature.source) {
+        case 'departmentData':
+          setDepHighlightedFilter(['==', 'name', feature.properties.name]);
+          layerRef.current = PROVINCE;
+          break;
+        case 'provinceData':
+          setProvHighlightedFilter(['==', 'name', feature.properties.name]);
+          layerRef.current = DISTRICT;
+          break;
+        case 'districtData':
+          setDistHighlightedFilter(['==', 'name', feature.properties.name]);
+          layerRef.current = DEPARTMENT;
+          break;
+        default:
+          break;
+      }
     }
+  };
+
+  const onContextMenu = (e) => {
+    const map = e.target;
+    map.fitBounds([-84.6356535, -18.3984472, -68.6519906, -0.0392818]);
+    setDepHighlightedFilter(['==', 'name', '']);
+    setProvHighlightedFilter(['==', 'name', '']);
+    setDistHighlightedFilter(['==', 'name', '']);
+    layerRef.current = DEPARTMENT;
   };
 
   const onMoveEnd = async (e) => {
@@ -139,7 +172,7 @@ function App() {
   };
 
   return (
-    <div style={boxStyle}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <MapLibre
         ref={mapRef}
         {...viewState}
@@ -148,6 +181,7 @@ function App() {
         interactiveLayerIds={interactiveLayerIds}
         onClick={onClick}
         onMoveEnd={onMoveEnd}
+        onContextMenu={onContextMenu}
       >
         <Source id="departmentData" type="geojson" data={departamentos}>
           <Layer {...departmentFill} />
@@ -183,6 +217,9 @@ function App() {
         <Source id="districtCentroid" type="geojson" data={distCentroid}>
           <Layer {...districtCentroidLabel} />
         </Source>
+        <Layer {...districtHighlight} filter={distHighlightedFilter} />
+        <Layer {...provinceHighlight} filter={provHighlightedFilter} />
+        <Layer {...departmentHighlight} filter={depHighlightedFilter} />
         <ScaleControl />
         <FullscreenControl />
         <GeolocateControl />
